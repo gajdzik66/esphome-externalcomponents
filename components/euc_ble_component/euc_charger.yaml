@@ -1,0 +1,105 @@
+# Przykladowa konfiguracja: Veteran Patton S -> Home Assistant (ESP32, ESPHome)
+# Strukture katalogow zachowaj:  euc_charger.yaml + components/euc_ble/...
+
+esphome:
+  name: euc-charger
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+  level: INFO          # na czas debugowania: DEBUG (i logger: logs: euc_ble: DEBUG)
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+external_components:
+  - source:
+      type: local
+      path: components
+    components: [euc_ble]
+
+esp32_ble_tracker:
+
+ble_client:
+  - mac_address: "AA:BB:CC:DD:EE:FF"   # MAC kola (wypisuje go euc_veteran_test.ino: "Znaleziono: LK... <MAC>")
+    id: wheel
+
+euc_ble:
+  id: euc
+  ble_client_id: wheel
+  update_interval: 10s     # jak czesto publikowac do HA (rzadsze = mniej zapisow w bazie)
+  cells_per_bms: 30        # Patton S = 30S
+
+  voltage:
+    name: "EUC napięcie pakietu"
+    filters:
+      - delta: 0.1         # publikuj tylko przy zmianie >= 0.1 V
+  soc:
+    name: "EUC SOC"
+    filters:
+      - delta: 1
+  charging:
+    name: "EUC ładowanie"
+  connected:
+    name: "EUC połączone"
+
+  bms1:
+    current:
+      name: "EUC BMS1 prąd"
+      filters:
+        - delta: 0.05
+    cell_min:
+      name: "EUC BMS1 cela min"
+      filters:
+        - delta: 0.005
+    cell_max:
+      name: "EUC BMS1 cela max"
+      filters:
+        - delta: 0.005
+    cell_diff:
+      name: "EUC BMS1 różnica cel"
+      filters:
+        - delta: 2
+    temp_min:
+      name: "EUC BMS1 temp min"
+      filters:
+        - delta: 0.5
+    temp_max:
+      name: "EUC BMS1 temp max"
+      filters:
+        - delta: 0.5
+
+  bms2:
+    current:
+      name: "EUC BMS2 prąd"
+      filters:
+        - delta: 0.05
+    cell_min:
+      name: "EUC BMS2 cela min"
+      filters:
+        - delta: 0.005
+    cell_max:
+      name: "EUC BMS2 cela max"
+      filters:
+        - delta: 0.005
+    cell_diff:
+      name: "EUC BMS2 różnica cel"
+      filters:
+        - delta: 2
+    temp_min:
+      name: "EUC BMS2 temp min"
+      filters:
+        - delta: 0.5
+    temp_max:
+      name: "EUC BMS2 temp max"
+      filters:
+        - delta: 0.5
